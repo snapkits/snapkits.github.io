@@ -1,0 +1,71 @@
+# Next.js Configuration File
+
+This document explains the configuration file for a Next.js application.
+
+```js filename="next.config.js" {5} copy 
+/** @type {import('next').NextConfig} */
+
+const { PHASE_DEVELOPMENT_SERVER } = require('next/constants');
+
+module.exports = (phase) => {
+  if (phase === PHASE_DEVELOPMENT_SERVER) {
+    return {
+      compiler: {
+        styledComponents: true,
+      },
+      reactStrictMode: false,
+    };
+  }
+
+  return {
+    output: 'export',
+    images: {
+      loader: 'custom',
+      path: '/snap-kits',
+      loaderFile: './src/custom-loader.js',
+    },
+    basePath: '/snap-kits',
+  };
+};
+```
+
+Base on current phase, the configuration file returns different configuration objects.
+
+### Development Server Configuration
+
+When the `phase` is `PHASE_DEVELOPMENT_SERVER`, which means the application is in development mode, the function returns a configuration object with two properties:
+
+- `compiler`: This object has a property `styledComponents` set to `true`, which indicates that the application uses styled-components. [Styled-components ↗](https://nextjs.org/docs/app/building-your-application/styling/css-in-js#styled-components).
+- `reactStrictMode`: This is set to `false`, which means React's [Strict Mode](https://reactjs.org/docs/strict-mode.html) is not enabled.
+
+### Production Configuration
+
+In other phases (like production), the function returns a different configuration object:
+
+- `output`: This is set to `'export'`, which means the application will be exported as a static HTML application. Starting from `next@14` `next export` command was removed in favor of `output: "export"` in `next.config.js`.
+- `images`: This object configures how images are handled in the application. The `loader` is set to `'custom'`, which means a custom image loader is used. The `path` is set to `'/snap-kits'`, which is the path where images are located. The `loaderFile` is set to `'./src/custom-loader.js'`, which is the file that contains the custom image loader.
+Default image loader was not working as it adds `?url=%2F` to the image URL which was causing issues with the image URLs. So, a custom image loader was created to remove the `?url=%2F` from the image URL.
+- `basePath`: This is set to `'/snap-kits'`, which is the base path for the application. All pages will be served relative to this path.
+
+### Custom Image Loader
+
+The custom image loader is defined in the `custom-loader.js` file, which is located in the `src` directory. This file contains the following code:
+
+```js filename="custom-loader.js" {5} copy 
+function normalizeSrc(src) {
+  return src[0] === "/" ? src.slice(1) : src;
+}
+
+export default function myImageLoader(param) {
+  const { src, width, quality } = param
+  const configEnv = process.env.__NEXT_IMAGE_OPTS;
+  const normalized_src = normalizeSrc(src);
+  return `${configEnv.path}${normalized_src}`
+}
+```
+
+In future this loader function will be modified to handle different image sizes and quality based on the `width` and `quality` parameters.
+
+### Reason of images loader and basePath
+
+The reason for using a custom image loader and setting the base path is that the application is hosted on GitHub Pages, and the images are hosted on a different domain. The custom image loader is used to remove the `?url=%2F` from the image URL, and the base path is set to `'/snap-kits'` to serve all pages relative to this path.

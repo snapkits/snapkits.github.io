@@ -1,0 +1,126 @@
+# GitHub Actions Workflow for Node.js Project Deployment
+
+This document explains the GitHub Actions workflow file for a Node.js project. The workflow is designed to install node dependencies, build the source code, and deploy the application to GitHub Pages.
+
+### Giving Name to workflow
+
+```yaml
+name: GitHub Pages deploy 
+```
+This line sets the name of the workflow as "GitHub Pages deploy".
+
+## Setting up the trigger
+```yaml
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+```
+The workflow is triggered:
+- `push:->branches:` specify when there's a push to the `main` branch workflow will triggered.
+- `workflow_dispatch` helps to trigger deployment via Actions tab in the GitHub repository.
+
+### Setting up the environment variables
+
+```yaml
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+```
+This sets the permissions for the `GITHUB_TOKEN` used in the workflow. It can read repository contents, write to GitHub Pages, and write id-tokens.
+
+### Setting up the jobs
+
+```yaml
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+```
+This ensures that only one deployment job runs at a time. If a new job starts, it cancels any in-progress jobs in the 'pages' group.
+
+## Setting up the build job
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+```
+This starts the definition of the `build` job, which runs on the latest version of Ubuntu.
+
+### Setting up the steps
+
+```yaml
+steps:
+  - name: Checkout 🛎️
+    uses: actions/checkout@v4
+```
+This step checks out the repository code using the `checkout` action.
+
+### Setting up the Node.js environment
+
+```yaml
+- name: Use Node.js 20.x
+  uses: actions/setup-node@v4
+  with:
+    node-version: '20.x'
+```
+This step sets up Node.js version 20.x using the `setup-node` action.
+
+```yaml
+- name: Installing my packages
+  run: npm ci
+```
+This step installs the project dependencies using `npm ci`.
+
+```yaml
+- name: Build my App
+  run: npm run build
+```
+This step builds the application using `npm run build`.
+
+***In latest version of Nextjs version `npm run build` is also used for exporting it to the `out` folder. For that you also have to add the following code in `next.config.js` file.
+
+```javascript
+module.exports = {
+    output: 'export',
+    images: {
+      loader: 'custom',
+      path: '/repo-name',
+      loaderFile: './src/custom-loader.js',
+    },
+    basePath: '/repo-name',
+}
+```
+
+I have explainig the `next.config.js` file in another blog. [Next Configuration file ↗](/blog/next-config)
+
+### Upload the build output as an artifact
+
+```yaml
+- name: Upload artifact
+  uses: actions/upload-pages-artifact@v3
+  with:
+    path: ./out
+```
+This step uploads the build output as an artifact using the `upload-pages-artifact` action.
+
+## Setting up the deployment job
+
+```yaml
+deploy:
+  environment:
+    name: github-pages
+    url: ${{ steps.deployment.outputs.page_url }}
+  runs-on: ubuntu-latest
+  needs: build
+```
+This starts the definition of the `deploy` job, which depends on the `build` job and runs on the latest version of Ubuntu.
+
+```yaml
+steps:
+  - name: Deploy to GitHub Pages
+    id: deployment
+    uses: actions/deploy-pages@v4
+```
+This step deploys the application to GitHub Pages using the `deploy-pages` action.
