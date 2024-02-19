@@ -10,11 +10,11 @@ const withNextra = require('nextra')({
 
 module.exports = withNextra({
   // output: 'export',
-  basePath: '/snap-kits',
+  basePath: '',
   images: { 
     unoptimized: true, 
     loader: 'custom',
-    path: '/snap-kits',
+    path: '',
     loaderFile: './custom-loader.js',
   },
   reactStrictMode: true,
