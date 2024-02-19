@@ -11,7 +11,12 @@ const withNextra = require('nextra')({
 module.exports = withNextra({
   // output: 'export',
   basePath: '/snap-kits',
-  images: { unoptimized: true},
+  images: { 
+    unoptimized: true, 
+    loader: 'custom',
+    path: '/snap-kits',
+    loaderFile: './custom-loader.js',
+  },
   reactStrictMode: true,
   eslint: {
     // ESLint behaves weirdly in this monorepo.
