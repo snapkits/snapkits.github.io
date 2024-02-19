@@ -29,8 +29,6 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2.4.0
-
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
@@ -47,10 +45,8 @@ jobs:
       #     static_site_generator: next
 
       - name: Installing my packages
-        run: pnpm i
+        run: npm i
 
-      - name: Clean
-        run: pnpm clean
 
       - name: Build my App
         run: npm run build && npm run export && ls -la && cat next.config.js
